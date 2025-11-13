@@ -42,6 +42,8 @@ A lightweight, complete observability setup using Prometheus, Grafana, and Node 
 ### 1. Start the Stack
 
 ```bash
+docker compose up -d
+# or
 docker-compose up -d
 ```
 
@@ -59,7 +61,17 @@ This will start all services:
    - Password: `admin`
 3. Navigate to Dashboards → "Demo Application Monitoring Dashboard"
 
-### 3. View Metrics
+### 3. Verify Setup (Optional)
+
+Run the verification script to check all services are running:
+
+```bash
+bash verify-setup.sh
+```
+
+This will verify that Docker is running, all containers are up, and endpoints are accessible.
+
+### 4. View Metrics
 
 The dashboard displays:
 - **CPU Usage** - Current CPU percentage with threshold indicators
@@ -68,7 +80,7 @@ The dashboard displays:
 - **CPU Usage Over Time** - Historical CPU trends
 - **Response Time Percentiles** - P50, P95, P99 latency
 - **Memory Usage** - Application memory consumption
-- **Active Alerts** - Currently firing alerts
+- **Alert Status** - Alert conditions (1=Firing, 0=OK)
 
 ## Services & Endpoints
 
@@ -78,7 +90,7 @@ The dashboard displays:
   - `GET /` - Basic health check
   - `GET /health` - Application health status
   - `GET /metrics` - Prometheus metrics endpoint
-  - `GET /stress` - Simulate high CPU load for 30 seconds
+  - `GET /stress` - Simulate high CPU load for 60 seconds
 
 ### Prometheus
 - **URL**: http://localhost:9090
@@ -102,7 +114,7 @@ The dashboard displays:
 curl http://localhost:3000/stress
 ```
 
-This will simulate 85% CPU usage for 30 seconds, triggering the `HighCPUUsage` alert.
+This will simulate 85% CPU usage for 60 seconds, triggering the `HighCPUUsage` alert.
 
 ### View Alerts in Prometheus
 
@@ -111,16 +123,22 @@ This will simulate 85% CPU usage for 30 seconds, triggering the `HighCPUUsage` a
 
 ### View Alerts in Grafana
 
-The "Active Alerts" panel in the dashboard will show firing alerts in real-time.
+The "Alert Status (1=Firing, 0=OK)" panel in the dashboard shows:
+- **High CPU Alert** = 1 when CPU > 70%, 0 otherwise
+- **Unhealthy Alert** = 1 when app is unhealthy, 0 otherwise
+
+The panel updates in real-time as the dashboard auto-refreshes every 10 seconds.
 
 ## Alert Dispatcher Script (Bonus)
 
 The `alert_dispatcher.sh` script fetches active alerts from Prometheus and logs them locally.
 
+**Note for Windows users:** This script requires Git Bash or WSL (Windows Subsystem for Linux).
+
 ### Usage
 
 ```bash
-# Make the script executable
+# Make the script executable (Linux/Mac/WSL)
 chmod +x alert_dispatcher.sh
 
 # Run once and check for alerts
@@ -215,12 +233,12 @@ Alerts are logged to `alerts.log` with timestamps:
 ### Services won't start
 ```bash
 # Check logs
-docker-compose logs
+docker compose logs
 
 # Check specific service
-docker-compose logs app
-docker-compose logs prometheus
-docker-compose logs grafana
+docker compose logs app
+docker compose logs prometheus
+docker compose logs grafana
 ```
 
 ### Grafana dashboard not showing data
@@ -238,10 +256,10 @@ docker-compose logs grafana
 
 ```bash
 # Stop all services
-docker-compose down
+docker compose down
 
 # Stop and remove volumes (resets data)
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Screenshot Requirement
@@ -250,6 +268,14 @@ For submission, capture a screenshot showing:
 1. Grafana dashboard with all panels displaying metrics
 2. At least one alert in "Firing" state (trigger with `/stress` endpoint)
 3. Include browser URL bar showing `localhost:3001`
+
+**Tips for taking the screenshot:**
+- Open the Grafana dashboard first (http://localhost:3001)
+- Trigger the stress test: `curl http://localhost:3000/stress` or visit http://localhost:3000/stress in another tab
+- Wait 10-20 seconds for the dashboard to refresh and show the high CPU
+- The "Alert Status" panel will show "High CPU Alert = 1"
+- The CPU gauge will turn red at 85%
+- Take your screenshot within the 60-second stress window
 
 ## Next Steps
 
