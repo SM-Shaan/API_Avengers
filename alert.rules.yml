@@ -1,0 +1,72 @@
+groups:
+  - name: application_alerts
+    interval: 10s
+    rules:
+      # Alert when CPU usage is above 70%
+      - alert: HighCPUUsage
+        expr: app_cpu_usage_percent > 70
+        for: 30s
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% (threshold: 70%)"
+
+      # Alert when application becomes unhealthy
+      - alert: ApplicationUnhealthy
+        expr: app_health_status == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Application is unhealthy"
+          description: "The application health check is failing"
+
+      # Alert when application is down (no metrics)
+      - alert: ApplicationDown
+        expr: up{job="demo-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Application is down"
+          description: "The demo application is not responding to Prometheus scrapes"
+
+  - name: infrastructure_alerts
+    interval: 15s
+    rules:
+      # Alert when node CPU is high
+      - alert: HighNodeCPU
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High node CPU usage"
+          description: "Node {{ $labels.instance }} CPU usage is above 80%"
+
+      # Alert when node memory is high
+      - alert: HighNodeMemory
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High node memory usage"
+          description: "Node {{ $labels.instance }} memory usage is above 85%"
+
+      # Alert when response time is high
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_ms_bucket[5m])) > 1000
+        for: 2m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}ms (threshold: 1000ms)"

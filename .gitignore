@@ -1,0 +1,31 @@
+# Logs
+*.log
+logs/
+alerts.log
+
+# Docker volumes
+prometheus-data/
+grafana-data/
+
+# Node modules
+node_modules/
+app/node_modules/
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
